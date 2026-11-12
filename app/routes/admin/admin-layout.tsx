@@ -2,7 +2,7 @@ import {Outlet, redirect} from "react-router";
 import {SidebarComponent} from "@syncfusion/ej2-react-navigations";
 import {MobileSidebar, NavItems} from "../../../components";
 import {account} from "~/appwrite/client";
-import {getExistingUser, storeUserData} from "~/appwrite/auth";
+import {getExistingUser, isUserAdmin, storeUserData} from "~/appwrite/auth";
 
 export async function clientLoader() {
     try {
@@ -10,13 +10,18 @@ export async function clientLoader() {
 
         if(!user.$id) return redirect('/sign-in');
 
-        const existingUser = await getExistingUser(user.$id);
+        let existingUser: any = await getExistingUser(user.$id);
+        if (!existingUser?.$id) {
+            existingUser = await storeUserData();
+        }
 
-        if(existingUser?.status === 'user') {
+        const isAdmin = isUserAdmin({ email: user.email, name: user.name }) || existingUser?.status === 'admin';
+
+        if (!isAdmin) {
             return redirect('/');
         }
 
-        return existingUser?.$id ? existingUser : await storeUserData();
+        return existingUser ? { ...existingUser, status: 'admin' } : { status: 'admin', name: user.name, email: user.email };
     } catch (e) {
         console.log('Error in clientLoader', e)
         return redirect('/sign-in')

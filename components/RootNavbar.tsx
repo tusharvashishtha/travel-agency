@@ -1,6 +1,6 @@
 import React from 'react'
 import {Link, useLoaderData, useLocation, useNavigate, useParams} from "react-router";
-import {logoutUser} from "~/appwrite/auth";
+import {isUserAdmin, logoutUser} from "~/appwrite/auth";
 import {cn} from "~/lib/utils";
 
 interface RootNavbarProps {
@@ -13,6 +13,7 @@ const RootNavbar = ({ user: propUser }: RootNavbarProps = {}) => {
     const params = useParams();
     const routeData = useLoaderData() as any;
     const user = propUser || (routeData?.name || routeData?.email ? routeData : null);
+    const isAdmin = user?.status === 'admin' || isUserAdmin({ email: user?.email, name: user?.name });
 
     const handleLogout = async () => {
         await logoutUser();
@@ -28,7 +29,7 @@ const RootNavbar = ({ user: propUser }: RootNavbarProps = {}) => {
                 </Link>
 
                 <aside>
-                    {user?.status === 'admin' && (
+                    {isAdmin && (
                         <Link to="/dashboard" className={cn('text-base font-normal text-white', {"text-dark-100": location.pathname.startsWith('/travel')})}>
                             Admin Panel
                         </Link>

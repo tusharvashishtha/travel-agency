@@ -2,6 +2,17 @@ import { ID, OAuthProvider, Query } from "appwrite";
 import { account, database, appwriteConfig } from "~/appwrite/client";
 import { redirect } from "react-router";
 
+export const isUserAdmin = (userOrEmail?: { email?: string; name?: string } | string | null): boolean => {
+    if (!userOrEmail) return false;
+    const email = typeof userOrEmail === 'string' ? userOrEmail : userOrEmail.email;
+    const name = typeof userOrEmail === 'object' ? userOrEmail?.name : undefined;
+    const adminEmails = ['vashishthatushar004@gmail.com'];
+
+    if (email && adminEmails.includes(email.toLowerCase())) return true;
+    if (name && name.toLowerCase().includes('tushar')) return true;
+    return false;
+};
+
 export const getExistingUser = async (id: string) => {
     try {
         const { documents, total } = await database.listDocuments(
@@ -9,7 +20,14 @@ export const getExistingUser = async (id: string) => {
             appwriteConfig.userCollectionId,
             [Query.equal("accountId", id)]
         );
-        return total > 0 ? documents[0] : null;
+        if (total > 0) {
+            const userDoc = documents[0];
+            if (isUserAdmin({ email: userDoc.email, name: userDoc.name })) {
+                userDoc.status = 'admin';
+            }
+            return userDoc;
+        }
+        return null;
     } catch (error) {
         console.error("Error fetching user:", error);
         return null;
@@ -26,6 +44,8 @@ export const storeUserData = async () => {
             ? await getGooglePicture(providerAccessToken)
             : null;
 
+        const isAdmin = isUserAdmin({ email: user.email, name: user.name });
+
         const createdUser = await database.createDocument(
             appwriteConfig.databaseId,
             appwriteConfig.userCollectionId,
@@ -36,12 +56,15 @@ export const storeUserData = async () => {
                 name: user.name,
                 imageUrl: profilePicture,
                 joinedAt: new Date().toISOString(),
+                status: isAdmin ? 'admin' : 'user',
             }
         );
 
         if (!createdUser.$id) redirect("/sign-in");
+        return createdUser;
     } catch (error) {
         console.error("Error storing user data:", error);
+        return null;
     }
 };
 
@@ -91,11 +114,19 @@ export const getUser = async () => {
             appwriteConfig.userCollectionId,
             [
                 Query.equal("accountId", user.$id),
-                Query.select(["name", "email", "imageUrl", "joinedAt", "accountId"]),
+                Query.select(["name", "email", "imageUrl", "joinedAt", "accountId", "status"]),
             ]
         );
 
-        return documents.length > 0 ? documents[0] : redirect("/sign-in");
+        if (documents.length > 0) {
+            const userDoc = documents[0];
+            if (isUserAdmin({ email: userDoc.email || user.email, name: userDoc.name || user.name })) {
+                userDoc.status = 'admin';
+            }
+            return userDoc;
+        }
+
+        return redirect("/sign-in");
     } catch (error: any) {
         if (error?.code !== 401 && error?.type !== 'general_unauthorized_scope') {
             console.error("Error fetching user:", error);

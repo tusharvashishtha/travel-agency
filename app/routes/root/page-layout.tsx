@@ -1,5 +1,5 @@
 import {Outlet, redirect, useLoaderData} from "react-router";
-import {getExistingUser, storeUserData} from "~/appwrite/auth";
+import {getExistingUser, isUserAdmin, storeUserData} from "~/appwrite/auth";
 import {account} from "~/appwrite/client";
 import RootNavbar from "../../../components/RootNavbar";
 
@@ -9,8 +9,16 @@ export async function clientLoader() {
 
         if(!user.$id) return redirect('/sign-in');
 
-        const existingUser = await getExistingUser(user.$id);
-        return existingUser?.$id ? existingUser : await storeUserData();
+        let existingUser: any = await getExistingUser(user.$id);
+        if (!existingUser?.$id) {
+            existingUser = await storeUserData();
+        }
+
+        if (isUserAdmin({ email: user.email, name: user.name })) {
+            if (existingUser) existingUser.status = 'admin';
+        }
+
+        return existingUser || { status: 'admin', name: user.name, email: user.email };
     } catch (e) {
         return redirect('/sign-in')
     }
