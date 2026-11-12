@@ -3,11 +3,16 @@ import {Link, useLoaderData, useLocation, useNavigate, useParams} from "react-ro
 import {logoutUser} from "~/appwrite/auth";
 import {cn} from "~/lib/utils";
 
-const RootNavbar = () => {
+interface RootNavbarProps {
+    user?: any;
+}
+
+const RootNavbar = ({ user: propUser }: RootNavbarProps = {}) => {
     const navigate = useNavigate();
     const location = useLocation()
     const params = useParams();
-    const user = useLoaderData();
+    const routeData = useLoaderData() as any;
+    const user = propUser || (routeData?.name || routeData?.email ? routeData : null);
 
     const handleLogout = async () => {
         await logoutUser();
@@ -29,7 +34,7 @@ const RootNavbar = () => {
                         </Link>
                     )}
 
-                    <img src={user?.imageUrl || '/assets/images/david.wepb'} alt="user" referrerPolicy="no-referrer" />
+                    <img src={user?.imageUrl || '/assets/images/david.webp'} alt="user" referrerPolicy="no-referrer" />
 
                     <button onClick={handleLogout} className="cursor-pointer">
                         <img

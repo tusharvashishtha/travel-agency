@@ -96,8 +96,10 @@ export const getUser = async () => {
         );
 
         return documents.length > 0 ? documents[0] : redirect("/sign-in");
-    } catch (error) {
-        console.error("Error fetching user:", error);
+    } catch (error: any) {
+        if (error?.code !== 401 && error?.type !== 'general_unauthorized_scope') {
+            console.error("Error fetching user:", error);
+        }
         return null;
     }
 };
