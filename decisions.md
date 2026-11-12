@@ -152,11 +152,19 @@ flowchart TD
 
 ---
 
+### Decision 9: Automated Administrator Authorization
+- **Problem**: Access to `/dashboard`, `/all-users`, `/trips`, and `/trips/create` was gated by an RBAC check that redirected non-admin accounts back to `/`. Newly registered Google OAuth profiles default to `status: 'user'`, locking the project owner out of administrative routes.
+- **Actions**:
+  - Introduced `isUserAdmin()` utility in [app/appwrite/auth.ts](file:///C:/travel-agency-dashboard/app/appwrite/auth.ts) that automatically recognizes **Tushar Vashishtha** (`vashishthatushar004@gmail.com`) as an authorized Administrator.
+  - Integrated admin auto-promotion into [admin-layout.tsx](file:///C:/travel-agency-dashboard/app/routes/admin/admin-layout.tsx), [page-layout.tsx](file:///C:/travel-agency-dashboard/app/routes/root/page-layout.tsx), and [RootNavbar.tsx](file:///C:/travel-agency-dashboard/components/RootNavbar.tsx), granting full access to the **Admin Panel** and analytics suite.
+
+---
+
 ## 3. Verification & Current Repository State
 
 | Metric / Check | Value / Status |
 | :--- | :--- |
-| **Total Commits** | 27 |
+| **Total Commits** | 30 |
 | **Unique Contributors** | 1 (`Tushar Vashishtha <vashishthatushar004@gmail.com>`) |
 | **Working Tree** | Clean (`nothing to commit, working tree clean`) |
 | **Remote Status** | In sync with `origin/main` |
