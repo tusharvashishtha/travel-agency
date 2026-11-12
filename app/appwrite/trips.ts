@@ -19,16 +19,15 @@ export const getAllTrips = async (limit: number, offset: number) => {
 }
 
 export const getTripById = async (tripId: string) => {
-    const trip = await database.getDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.tripCollectionId,
-        tripId
-    );
+    try {
+        const trip = await database.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.tripCollectionId,
+            tripId
+        );
 
-    if(!trip.$id) {
-        console.log('Trip not found')
+        return trip?.$id ? trip : null;
+    } catch (error) {
         return null;
     }
-
-    return trip;
 }
