@@ -140,11 +140,23 @@ flowchart TD
 
 ---
 
+### Decision 8: Runtime Error Resolution & Data Seeding
+- **Problem**: 
+  - External API `restcountries.com/v3.1/all` was officially deprecated, crashing the trip creation form loader with `data.map is not a function`.
+  - Empty Appwrite database collections resulted in completely blank sections on the homepage (`/`), trips manager (`/trips`), all users table (`/all-users`), and dashboard analytics (`/dashboard`).
+  - Image extension typo (`.wepb`) and missing `favicon.ico` generated 404 router mismatch logs.
+- **Actions**:
+  - Authored [app/constants/countries.ts](file:///C:/travel-agency-dashboard/app/constants/countries.ts) with 176 pre-calculated geographic centroids and flag emojis derived directly from [world_map.ts](file:///C:/travel-agency-dashboard/app/constants/world_map.ts), providing instant offline-capable country dropdowns.
+  - Enriched sample trips and seeded full fallback records in [app/constants/index.ts](file:///C:/travel-agency-dashboard/app/constants/index.ts) across the marketplace, trip details, and dashboard grids when database collections have zero documents.
+  - Corrected image filenames to `.webp`, added static `favicon.ico`, and updated guest session handling.
+
+---
+
 ## 3. Verification & Current Repository State
 
 | Metric / Check | Value / Status |
 | :--- | :--- |
-| **Total Commits** | 24 |
+| **Total Commits** | 27 |
 | **Unique Contributors** | 1 (`Tushar Vashishtha <vashishthatushar004@gmail.com>`) |
 | **Working Tree** | Clean (`nothing to commit, working tree clean`) |
 | **Remote Status** | In sync with `origin/main` |
