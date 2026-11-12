@@ -4,23 +4,37 @@ import type { Route } from './+types/travel-detail';
 import {cn, getFirstWord, parseTripData} from "~/lib/utils";
 import {Header, InfoPill, TripCard} from "../../../components";
 import {ButtonComponent, ChipDirective, ChipListComponent, ChipsDirective} from "@syncfusion/ej2-react-buttons";
+import {allTrips as sampleTrips} from "~/constants";
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
     const { tripId } = params;
     if(!tripId) throw new Error ('Trip ID is required');
 
-    const [trip, trips] = await Promise.all([
+    const [dbTrip, trips] = await Promise.all([
         getTripById(tripId),
         getAllTrips(4, 0)
     ]);
 
+    let trip = dbTrip;
+    if (!trip) {
+        const sample = sampleTrips.find(t => String(t.id) === String(tripId)) || sampleTrips[0];
+        trip = {
+            $id: String(sample.id),
+            imageUrls: sample.imageUrls,
+            payment_link: '#',
+            tripDetails: JSON.stringify(sample),
+        } as any;
+    }
+
+    const rawAllTrips = trips.allTrips.map(({ $id, tripDetails, imageUrls }) => ({
+        id: $id,
+        ...parseTripData(tripDetails),
+        imageUrls: imageUrls ?? []
+    }));
+
     return {
         trip,
-        allTrips: trips.allTrips.map(({ $id, tripDetails, imageUrls }) => ({
-            id: $id,
-            ...parseTripData(tripDetails),
-            imageUrls: imageUrls ?? []
-        }))
+        allTrips: rawAllTrips.length > 0 ? rawAllTrips : sampleTrips
     }
 }
 

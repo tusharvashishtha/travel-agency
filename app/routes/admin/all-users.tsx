@@ -3,11 +3,13 @@ import {ColumnsDirective, ColumnDirective, GridComponent} from "@syncfusion/ej2-
 import {cn, formatDate} from "~/lib/utils";
 import {getAllUsers} from "~/appwrite/auth";
 import type {Route} from "./+types/all-users"
+import {users as defaultUsers} from "~/constants";
 
 export const loader = async () => {
     const { users, total } = await getAllUsers(10, 0);
+    const displayUsers = (users && users.length > 0) ? users : defaultUsers;
 
-    return { users, total };
+    return { users: displayUsers, total: total || displayUsers.length };
 }
 
 const AllUsers = ({ loaderData }: Route.ComponentProps) => {

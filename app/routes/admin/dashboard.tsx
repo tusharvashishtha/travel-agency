@@ -13,7 +13,7 @@ import {
     Tooltip
 } from "@syncfusion/ej2-react-charts";
 import {ColumnDirective, ColumnsDirective, GridComponent, Inject} from "@syncfusion/ej2-react-grids";
-import {tripXAxis, tripyAxis, userXAxis, useryAxis} from "~/constants";
+import {allTrips as sampleTrips, dashboardStats as defaultStats, tripXAxis, tripyAxis, users as defaultUsers, userXAxis, useryAxis} from "~/constants";
 import {redirect} from "react-router";
 
 export const clientLoader = async () => {
@@ -33,21 +33,28 @@ export const clientLoader = async () => {
         await getAllUsers(4, 0),
     ])
 
-    const allTrips = trips.allTrips.map(({ $id, tripDetails, imageUrls }) => ({
+    const parsedTrips = trips.allTrips.map(({ $id, tripDetails, imageUrls }) => ({
         id: $id,
         ...parseTripData(tripDetails),
         imageUrls: imageUrls ?? []
     }))
+    const allTrips = parsedTrips.length > 0 ? parsedTrips : (sampleTrips as unknown as Trip[]);
 
-    const mappedUsers: UsersItineraryCount[] = allUsers.users.map((user) => ({
-        imageUrl: user.imageUrl,
-        name: user.name,
-        count: user.itineraryCount ?? Math.floor(Math.random() * 10),
-    }))
+    const mappedUsers: UsersItineraryCount[] = (allUsers?.users && allUsers.users.length > 0)
+        ? allUsers.users.map((u) => ({
+            imageUrl: u.imageUrl || '/assets/images/david.webp',
+            name: u.name,
+            count: u.itineraryCount ?? Math.floor(Math.random() * 10),
+        }))
+        : defaultUsers.map((u) => ({
+            imageUrl: u.imageUrl,
+            name: u.name,
+            count: Number(u.itineraryCreated) || 5,
+        }));
 
     return {
         user,
-        dashboardStats,
+        dashboardStats: dashboardStats?.totalUsers > 0 ? dashboardStats : defaultStats,
         allTrips,
         userGrowth,
         tripsByTravelStyle,

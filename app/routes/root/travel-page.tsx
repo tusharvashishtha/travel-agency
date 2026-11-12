@@ -6,6 +6,7 @@ import {getAllTrips} from "~/appwrite/trips";
 import type {Route} from "../../../.react-router/types/app/routes/admin/+types/trips";
 import {useState} from "react";
 import {PagerComponent} from "@syncfusion/ej2-react-grids";
+import {allTrips as sampleTrips} from "~/constants";
 
 const FeaturedDestination = ({ containerClass = '', bigCard = false, rating, title, activityCount, bgImage }: DestinationProps) => (
     <section className={cn('rounded-[14px] overflow-hidden bg-cover bg-center size-full min-w-[280px]', containerClass, bgImage)}>
@@ -51,7 +52,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 }
 
 const TravelPage = ({ loaderData }: Route.ComponentProps) => {
-    const trips = loaderData.trips as Trip[] | [];
+    const rawTrips = loaderData?.trips as Trip[] | [];
+    const trips = (rawTrips && rawTrips.length > 0) ? rawTrips : (sampleTrips as unknown as Trip[]);
+    const totalCount = loaderData?.total > 0 ? loaderData.total : trips.length;
 
     const [searchParams] = useSearchParams();
     const initialPage = Number(searchParams.get('page') || '1')
@@ -150,21 +153,21 @@ const TravelPage = ({ loaderData }: Route.ComponentProps) => {
                 <Header title="Handpicked Trips" description="Browse well-planned trips designes for your travel style" />
 
                 <div className="trip-grid">
-                    {trips.map((trip) => (
+                    {trips.map((trip: any) => (
                         <TripCard
                             key={trip.id}
                             id={trip.id}
                             name={trip.name}
-                            imageUrl={trip.imageUrls[0]}
-                            location={trip.itinerary?.[0]?.location ?? ""}
-                            tags={[trip.interests, trip.travelStyle]}
+                            imageUrl={trip.imageUrls?.[0] || '/assets/images/card-img-1.png'}
+                            location={trip.itinerary?.[0]?.location ?? trip.country ?? ""}
+                            tags={Array.isArray(trip.tags) ? trip.tags : [trip.interests || 'Culture', trip.travelStyle || 'Adventure']}
                             price={trip.estimatedPrice}
                         />
                     ))}
                 </div>
 
                 <PagerComponent
-                    totalRecordsCount={loaderData.total}
+                    totalRecordsCount={totalCount}
                     pageSize={8}
                     currentPage={currentPage}
                     click={(args) => handlePageChange(args.currentPage)}

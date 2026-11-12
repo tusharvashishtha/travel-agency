@@ -9,17 +9,26 @@ import {world_map} from "~/constants/world_map";
 import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import {account} from "~/appwrite/client";
 import {useNavigate} from "react-router";
+import {countriesList} from "~/constants/countries";
 
 export const loader = async () => {
-    const response = await fetch('https://restcountries.com/v3.1/all');
-    const data = await response.json();
+    try {
+        const response = await fetch('https://restcountries.com/v3.1/all');
+        const data = await response.json();
 
-    return data.map((country: any) => ({
-        name: country.flag + country.name.common,
-        coordinates: country.latlng,
-        value: country.name.common,
-        openStreetMap: country.maps?.openStreetMap,
-    }))
+        if (Array.isArray(data) && data.length > 0) {
+            return data.map((country: any) => ({
+                name: (country.flag || '🌍') + ' ' + (country.name?.common || country.name),
+                coordinates: country.latlng || [0, 0],
+                value: country.name?.common || country.name,
+                openStreetMap: country.maps?.openStreetMap,
+            }));
+        }
+    } catch (e) {
+        // Fall back to built-in countries dataset
+    }
+
+    return countriesList;
 }
 
 const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
@@ -103,7 +112,7 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps ) => {
         {
             country: formData.country,
             color: '#EA382E',
-            coordinates: countries.find((c: Country) => c.name === formData.country)?.coordinates || []
+            coordinates: countries.find((c: Country) => c.value === formData.country || c.name === formData.country)?.coordinates || []
         }
     ]
 
