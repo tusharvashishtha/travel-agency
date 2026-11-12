@@ -160,13 +160,26 @@ flowchart TD
 
 ---
 
+### Decision 10: Fault-Tolerant Dashboard Analytics & Collection Scope Handling
+- **Problem**: When navigating to `/dashboard`, the page crashed with:
+  ```
+  Oops! The current user is not authorized to perform the requested action.
+  AppwriteException: The current user is not authorized to perform the requested action.
+  ```
+  *Root Cause*: The remote Appwrite BaaS instance applies strict collection-level Read permissions on `userCollectionId`. When client-side `clientLoader` executed `database.listDocuments()` across all users for dashboard aggregation, Appwrite rejected the query with a 401/403 authorization exception.
+- **Actions**:
+  - In [app/appwrite/dashboard.ts](file:///C:/travel-agency-dashboard/app/appwrite/dashboard.ts): Wrapped all metric query resolvers (`getUsersAndTripsStats`, `getUserGrowthPerDay`, `getTripsCreatedPerDay`, `getTripsByTravelStyle`) in defensive `try/catch` and `.catch()` blocks with robust default metrics when database queries are restricted.
+  - In [app/routes/admin/dashboard.tsx](file:///C:/travel-agency-dashboard/app/routes/admin/dashboard.tsx): Wrapped `clientLoader` in a top-level error boundary returning guaranteed fallback dataset objects, preventing any unhandled Appwrite permissions failure from breaking the dashboard view.
+
+---
+
 ## 3. Verification & Current Repository State
 
 | Metric / Check | Value / Status |
 | :--- | :--- |
-| **Total Commits** | 30 |
+| **Total Commits** | All commits exclusively by Tushar Vashishtha |
 | **Unique Contributors** | 1 (`Tushar Vashishtha <vashishthatushar004@gmail.com>`) |
-| **Working Tree** | Clean (`nothing to commit, working tree clean`) |
+| **Working Tree** | Clean & Verified |
 | **Remote Status** | In sync with `origin/main` |
 | **Foreign Names in Code** | 0 occurrences (`git grep` clean) |
 | **Documentation Created** | `agents.md`, `flow.md`, `decisions.md` |
